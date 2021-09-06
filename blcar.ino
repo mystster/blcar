@@ -217,8 +217,12 @@ void setup() {
     Serial.println("circuit setup");
     pinMode(in1, OUTPUT);
     pinMode(in2, OUTPUT);
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, HIGH);
+    pinMode(in3, OUTPUT);
+    pinMode(in4, OUTPUT);
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
     ledcSetup(leftPwmChannel, pwmFreq, pwmBit);
     ledcSetup(rightPwmChannel, pwmFreq, pwmBit);
     ledcAttachPin(ena, leftPwmChannel);
