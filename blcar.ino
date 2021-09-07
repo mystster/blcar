@@ -1,4 +1,6 @@
 #include <Ps3Controller.h>
+#include <U8g2lib.h>
+#include <Wire.h>
 
 // left wheel
 uint8_t ena = 14;
@@ -15,8 +17,14 @@ uint8_t leftPwmChannel = 1;
 double pwmFreq = 10000;
 uint8_t pwmBit = 7;
 
-int battery = 0;
+// U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, U8X8_PIN_NONE, 22, 21);
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R2, 22, 21);
 
+struct carStatus {
+    int controllerBattery = 0;
+};
+
+carStatus status;
 struct wheelData {
     int now;
     int last;
@@ -57,6 +65,7 @@ void controlWheel(int ry, int ly) {
     Serial.print(", right:");
     cw(ry, in3, in4, rightPwmChannel, &right);
     Serial.println();
+    displayStatus();
 }
 
 void ps3ControllerNotify() {
@@ -174,28 +183,28 @@ void ps3ControllerNotify() {
     //     Serial.println();
     // }
     //---------------------- Battery events ---------------------
-    if (battery != Ps3.data.status.battery) {
-        battery = Ps3.data.status.battery;
+    if (status.controllerBattery != Ps3.data.status.battery) {
+        status.controllerBattery = Ps3.data.status.battery;
         Serial.print("The controller battery is ");
-        if (battery == ps3_status_battery_charging)
+        if (status.controllerBattery == ps3_status_battery_charging)
             Serial.println("charging");
-        else if (battery == ps3_status_battery_full){
+        else if (status.controllerBattery == ps3_status_battery_full){
             Serial.println("FULL");
             Ps3.setPlayer(1);
         }
-        else if (battery == ps3_status_battery_high){
+        else if (status.controllerBattery == ps3_status_battery_high){
             Serial.println("HIGH");
             Ps3.setPlayer(2);
         }
-        else if (battery == ps3_status_battery_low){
+        else if (status.controllerBattery == ps3_status_battery_low){
             Serial.println("LOW");
             Ps3.setPlayer(3);
         }
-        else if (battery == ps3_status_battery_dying){
+        else if (status.controllerBattery == ps3_status_battery_dying){
             Serial.println("DYING");
             Ps3.setPlayer(4);
         }
-        else if (battery == ps3_status_battery_shutdown){
+        else if (status.controllerBattery == ps3_status_battery_shutdown){
             Serial.println("SHUTDOWN");
             Ps3.setPlayer(5);
         }
@@ -206,12 +215,25 @@ void ps3ControllerNotify() {
     }
 }
 
+void displayStatus(){
+    u8g2.clearBuffer();
+    char buf[100];
+    sprintf(buf, "battery: %d", status.controllerBattery);
+    u8g2.drawStr(0, 10, buf);
+    sprintf(buf, "l: %3d, r: %3d", left.now, right.now);
+    u8g2.drawStr(0, 20, buf);
+    u8g2.sendBuffer();
+}
+
 void setup() {
     Serial.begin(115200);
     Serial.println("setting up!!!");
     Serial.println("PS3 controller setup");
     Ps3.attach(ps3ControllerNotify);
-    Ps3.attachOnConnect([]() { Serial.println("Connected."); });
+    Ps3.attachOnConnect([]() { 
+        Serial.println("Connected.");
+        displayStatus();
+    });
     Ps3.begin("08:3A:F2:AC:24:72");
 
     Serial.println("circuit setup");
@@ -228,22 +250,16 @@ void setup() {
     ledcAttachPin(ena, leftPwmChannel);
     ledcAttachPin(enb, rightPwmChannel);
 
+    Serial.println("display setup");
+    
+    u8g2.begin();
+    u8g2.setFont(u8g2_font_8x13_tf);
+    displayStatus();
     Serial.println("Ready.");
 }
 
 void loop() {
     if (!Ps3.isConnected()) return;
-    //Serial.println(leftWheel);
-    // if(leftWheel > 0){
-    //     digitalWrite(in1, HIGH);
-    //     digitalWrite(in2, LOW);
-    // }else if(leftWheel < 0){
-    //     digitalWrite(in1, LOW);
-    //     digitalWrite(in2, HIGH);
-    // }else{
-    //     digitalWrite(in1, LOW);
-    //     digitalWrite(in2, LOW);
-    // }
 
     delay(200);
 }
