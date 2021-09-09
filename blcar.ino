@@ -1,6 +1,8 @@
 #include <Ps3Controller.h>
 #include <U8g2lib.h>
-#include <Wire.h>
+
+#define I2C_SCL 17
+#define I2C_SDA 16
 
 // left wheel
 uint8_t ena = 14;
@@ -17,8 +19,7 @@ uint8_t leftPwmChannel = 1;
 double pwmFreq = 10000;
 uint8_t pwmBit = 7;
 
-// U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, U8X8_PIN_NONE, 22, 21);
-U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R2, 22, 21);
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, U8X8_PIN_NONE, I2C_SCL, I2C_SDA);
 
 struct carStatus {
     int controllerBattery = 0;
@@ -65,7 +66,6 @@ void controlWheel(int ry, int ly) {
     Serial.print(", right:");
     cw(ry, in3, in4, rightPwmChannel, &right);
     Serial.println();
-    displayStatus();
 }
 
 void ps3ControllerNotify() {
@@ -220,8 +220,8 @@ void displayStatus(){
     char buf[100];
     sprintf(buf, "battery: %d", status.controllerBattery);
     u8g2.drawStr(0, 10, buf);
-    sprintf(buf, "l: %3d, r: %3d", left.now, right.now);
-    u8g2.drawStr(0, 20, buf);
+    sprintf(buf, "l:%4d, r:%4d", left.now, right.now);
+    u8g2.drawStr(0, 21, buf);
     u8g2.sendBuffer();
 }
 
@@ -232,7 +232,6 @@ void setup() {
     Ps3.attach(ps3ControllerNotify);
     Ps3.attachOnConnect([]() { 
         Serial.println("Connected.");
-        displayStatus();
     });
     Ps3.begin("08:3A:F2:AC:24:72");
 
@@ -250,16 +249,13 @@ void setup() {
     ledcAttachPin(ena, leftPwmChannel);
     ledcAttachPin(enb, rightPwmChannel);
 
-    Serial.println("display setup");
-    
+    Serial.println("OLED display setup");
     u8g2.begin();
     u8g2.setFont(u8g2_font_8x13_tf);
-    displayStatus();
     Serial.println("Ready.");
 }
 
 void loop() {
-    if (!Ps3.isConnected()) return;
-
-    delay(200);
+    displayStatus();
+    delay(50);
 }
