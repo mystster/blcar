@@ -19,7 +19,7 @@ uint8_t leftPwmChannel = 1;
 double pwmFreq = 10000;
 uint8_t pwmBit = 7;
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, U8X8_PIN_NONE, I2C_SCL, I2C_SDA);
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, I2C_SCL, I2C_SDA);
 
 struct carStatus {
     int controllerBattery = 0;
