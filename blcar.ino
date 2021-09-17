@@ -1,8 +1,14 @@
+#include <HCSR04.h>
 #include <Ps3Controller.h>
 #include <U8g2lib.h>
 
+// OLED display
 #define I2C_SCL 17
 #define I2C_SDA 16
+
+// HC-SR04
+#define TRIG 19
+#define ECHO 18
 
 // left wheel
 uint8_t ena = 14;
@@ -20,9 +26,12 @@ double pwmFreq = 10000;
 uint8_t pwmBit = 7;
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, I2C_SCL, I2C_SDA);
+HCSR04 hc(TRIG, ECHO);
 
 struct carStatus {
     int controllerBattery = 0;
+    float distance = 0.0;
+    String state;
 };
 
 carStatus status;
@@ -204,6 +213,10 @@ void displayStatus(){
     u8g2.drawStr(0, 10, buf);
     sprintf(buf, "l:%4d, r:%4d", left.now, right.now);
     u8g2.drawStr(0, 21, buf);
+    sprintf(buf, "distance: %.1f", status.distance);
+    u8g2.drawStr(0, 32, buf);
+    sprintf(buf, "State: %s", status.state);
+    u8g2.drawStr(0, 64, buf);
     u8g2.sendBuffer();
 }
 
@@ -214,6 +227,7 @@ void setup() {
     Ps3.attach(ps3ControllerNotify);
     Ps3.attachOnConnect([]() { 
         Serial.println("Connected.");
+        status.state = "Connected";
     });
     Ps3.begin("08:3A:F2:AC:24:72");
 
@@ -235,9 +249,11 @@ void setup() {
     u8g2.begin();
     u8g2.setFont(u8g2_font_8x13_tf);
     Serial.println("Ready.");
+    status.state = "Ready";
 }
 
 void loop() {
+    status.distance = hc.dist();
     displayStatus();
     delay(50);
 }
