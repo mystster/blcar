@@ -161,27 +161,9 @@ void ps3ControllerNotify() {
         abs(Ps3.event.analog_changed.stick.rx) +
                 abs(Ps3.event.analog_changed.stick.ry) >
             2) {
-        // int w = Ps3.data.analog.stick.ly;
-        // Serial.print("Moved the left stick:");
-        // Serial.print(" x=");
-        // Serial.print(Ps3.data.analog.stick.lx, DEC);
-        // Serial.print(" y=");
-        // Serial.print(w, DEC);
-        // Serial.println();
 
         controlWheel(Ps3.data.analog.stick.ry, Ps3.data.analog.stick.ly);
     }
-
-    // if (abs(Ps3.event.analog_changed.stick.rx) +
-    //         abs(Ps3.event.analog_changed.stick.ry) >
-    //     2) {
-    //     Serial.print("Moved the right stick:");
-    //     Serial.print(" x=");
-    //     Serial.print(Ps3.data.analog.stick.rx, DEC);
-    //     Serial.print(" y=");
-    //     Serial.print(Ps3.data.analog.stick.ry, DEC);
-    //     Serial.println();
-    // }
     //---------------------- Battery events ---------------------
     if (status.controllerBattery != Ps3.data.status.battery) {
         status.controllerBattery = Ps3.data.status.battery;
